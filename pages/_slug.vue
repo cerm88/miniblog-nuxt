@@ -4,7 +4,7 @@
       <h1>{{ post.title }}</h1>
       <div class="author">
         <p>Por {{ post.author }}</p>
-        <small>Fecha de publicación: {{ post.updated }}</small>
+        <small> Fecha de publicación: {{ post.updated }} </small>
       </div>
       <p>{{ post.description }}</p>
       <figure>
@@ -22,20 +22,42 @@ import { marked } from 'marked';
 
 export default {
   name: 'ArticlePage',
+  // Manupulación de permisos en el router
+  /*
+  middleware(context) {
+    const { redirect } = context;
+
+    // eslint-disable-next-line no-console
+    console.log(context);
+
+    redirect('/');
+  },
+  */
+  // Función que se ejecuta el el servidor mediante SSG
+  asyncData({ params, $http }) {
+    // context
+    const { slug } = params;
+
+    const article = $http.$get(
+      `http://localhost:9999/.netlify/functions/article?slug=${slug}`,
+    );
+
+    return article;
+  },
   data() {
     return {
-      post: {
-        slug: 'mi-primer-post',
-        title: 'Mi primer post',
-        author: 'Diana Martínez',
-        updated: '8/06/2022',
-        description: 'Lorem ispum dolor sit amet',
-        cover: 'https://via.placeholder.com/1024x420',
-        content: '# Title\n\n## Second title\n\nLorem ipsum dolor sit amet',
-      },
+      // post: {
+      //   slug: 'mi-primer-post',
+      //   title: 'Mi primer post',
+      //   author: 'Diana Martínez',
+      //   updated: '8/06/2022',
+      //   description: 'Lorem ispum dolor sit amet',
+      //   cover: 'https://via.placeholder.com/1024x420',
+      //   content: '# Title\n\n## Second title\n\nLorem ipsum dolor sit amet',
+      // },
     };
   },
-  // Si queremos que los meta tags sean estático
+  // Si queremos que los meta tags sean estáticos
   /*
   head: {
     title: 'Mi pimer post'
@@ -51,6 +73,16 @@ export default {
   computed: {
     renderMarkdown() {
       return marked(this.post.content);
+    },
+    post() {
+      return {
+        title: this.article?.title,
+        author: this.article['author-name'][0],
+        updated: new Date(this.article?.updated).toLocaleDateString(),
+        description: this.article?.description,
+        cover: this.article?.cover[0].thumbnails.full.url,
+        content: this.article?.content,
+      };
     },
   },
 };
