@@ -25,11 +25,40 @@
 // import AboutMe from '~/components/AboutMe.vue';
 export default {
   name: 'IndexPage',
+  // Podemos hacer que cargue en el server SSR, o SSG (npm run generate)
+  async asyncData({ $http, isDev }) {
+    const baseUrl = isDev
+      ? 'http://localhost:9999'
+      : 'https://miniblog-nuxt.netlify.app';
+
+    const url = `${baseUrl}/.netlify/functions/articles`;
+    const { articles: posts } = await $http.$get(url);
+
+    return { posts };
+  },
   data() {
     return {
-      articles: [],
+      // articles: [],
     };
   },
+  computed: {
+    articles() {
+      let articles = [];
+
+      if (Array.isArray(this.posts)) {
+        articles = this.posts.map((article) => ({
+          ...article,
+          author: article['author-name'][0],
+          date: new Date(article.updated),
+          cover: article.cover[0]?.thumbnails.large.url,
+        }));
+      }
+
+      return articles;
+    },
+  },
+  // Esto hará que se cargue los datos en el cliente CSR
+  /*
   async mounted() {
     const baseUrl =
       location.hostname === 'localhost'
@@ -46,6 +75,7 @@ export default {
       cover: article.cover[0]?.thumbnails.large.url,
     }));
   },
+  */
 };
 </script>
 

@@ -114,6 +114,8 @@ export default {
   },
   methods: {
     async createComment(comment) {
+      this.$nuxt.$loading.start(); // Barra de progreso iniciando
+
       const url =
         location.hostname === 'localhost'
           ? 'http://localhost:9999'
@@ -124,6 +126,9 @@ export default {
         method: 'post',
         body: JSON.stringify(comment),
       });
+
+      this.$nuxt.refresh(); // Refrescar los datos en el dom
+      this.$nuxt.$loading.finish(); // Barra de progreso finalizando
     },
   },
 };
