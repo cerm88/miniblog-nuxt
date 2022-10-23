@@ -112,6 +112,9 @@ export default {
       };
     },
   },
+  mounted() {
+    this.refresh();
+  },
   methods: {
     async createComment(comment) {
       this.$nuxt.$loading.start(); // Barra de progreso iniciando
@@ -129,6 +132,9 @@ export default {
 
       this.$nuxt.refresh(); // Refrescar los datos en el dom
       this.$nuxt.$loading.finish(); // Barra de progreso finalizando
+    },
+    refresh() {
+      this.$nuxt.refresh();
     },
   },
 };
