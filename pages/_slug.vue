@@ -13,36 +13,63 @@
       </figure>
       <!-- eslint-disable-next-line vue/no-v-html -->
       <div class="markdown" v-html="renderMarkdown"></div>
+      <div ref="comments" class="comments">
+        <h3 class="title">Comentarios</h3>
+        <p class="total-comments">
+          Hay {{ article['total-comments'] || 0 }} comentarios
+        </p>
+        <div class="comments-list">
+          <CommentItem
+            v-for="comment in comments"
+            :key="comment._id"
+            v-bind="comment"
+          />
+        </div>
+        <div class="add-comment">
+          <InputComment @submit="createComment" />
+        </div>
+      </div>
     </article>
   </div>
 </template>
 
 <script>
 import { marked } from 'marked';
+import InputComment from '~/components/InputComment.vue';
+import CommentItem from '~/components/CommentItem.vue';
 
 export default {
   name: 'ArticlePage',
+  components: { CommentItem, InputComment },
   // Manupulación de permisos en el router
   /*
-  middleware(context) {
-    const { redirect } = context;
-
-    // eslint-disable-next-line no-console
-    console.log(context);
-
-    redirect('/');
-  },
-  */
+    middleware(context) {
+      const { redirect } = context;
+      // eslint-disable-next-line no-console
+      console.log(context);
+      redirect('/');
+    },
+    */
   // Función que se ejecuta el el servidor mediante SSG
-  asyncData({ params, $http }) {
-    // context
+  // async asyncData({ params, $http }) {
+  //   const { slug } = params;
+  //   const data = await $http.$get(
+  //     `http://localhost:9999/.netlify/functions/article?slug=${slug}`,
+  //   );
+
+  //   const { article, comments } = data;
+
+  //   return { article, comments };
+  // },
+  asyncData({ params, $http, isDev }) {
     const { slug } = params;
+    const url = isDev
+      ? 'http://localhost:9999'
+      : 'https://miniblog-nuxt.netlify.app';
 
-    const article = $http.$get(
-      `http://localhost:9999/.netlify/functions/article?slug=${slug}`,
-    );
+    const data = $http.$get(`${url}/.netlify/functions/article?slug=${slug}`);
 
-    return article;
+    return data; // { article, comments }
   },
   data() {
     return {
@@ -59,10 +86,10 @@ export default {
   },
   // Si queremos que los meta tags sean estáticos
   /*
-  head: {
-    title: 'Mi pimer post'
-  },
-  */
+    head: {
+      title: 'Mi pimer post'
+    },
+    */
   // Si queremos que los meta tags sean reactivos (dinámicos)
   head() {
     return {
@@ -83,6 +110,20 @@ export default {
         cover: this.article?.cover[0].thumbnails.full.url,
         content: this.article?.content,
       };
+    },
+  },
+  methods: {
+    async createComment(comment) {
+      const url =
+        location.hostname === 'localhost'
+          ? 'http://localhost:9999'
+          : 'https://miniblog-nuxt.netlify.app';
+      const artId = this.article._id;
+
+      await fetch(`${url}/.netlify/functions/comment?article=${artId}`, {
+        method: 'post',
+        body: JSON.stringify(comment),
+      });
     },
   },
 };
